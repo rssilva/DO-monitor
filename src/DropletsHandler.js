@@ -1,6 +1,18 @@
-var DropletsHandler = {
-  init: function () {
+var DigitalOcean = require('dropletapi').Droplets;
 
+var DropletsHandler = {
+  init: function (token) {
+    this.digitalOcean = new DigitalOcean(token);
+  },
+
+  getData: function (cb) {
+    var that = this;
+    var statuses;
+
+    this.digitalOcean.listDroplets(function (err, result) {
+      statuses = that.onDataUpdate(result);
+      cb(statuses);
+    });
   },
 
   setMonitored: function (monitored) {
@@ -21,38 +33,33 @@ var DropletsHandler = {
 
   onDataUpdate: function (data) {
     if (data && data.droplets) {
-      this.parseDroplets(data.droplets);
+      return this.parseDroplets(data.droplets);
     }
   },
 
   parseDroplets: function (droplets) {
-    var isMonitored;
+    var ok = [];
+    var notOk = [];
+    var isOk;
 
     droplets.forEach(function (droplet) {
-      this.checkDroplet(droplet);
+      isOk = this.checkDroplet(droplet);
+
+      isOk ? ok.push(droplet) : notOk.push(droplet);
     }.bind(this));
+
+    return {notOk: notOk, ok: ok};
   },
 
   checkDroplet: function (droplet) {
     var isMonitored = this.isMonitored(droplet.name);
     var isOk = this.isOk(droplet.status);
 
-    if (isMonitored && isOk) {
-      this.setToOk(droplet);
-    }
+    var shouldNotify = isMonitored && !isOk;
 
-    if (isMonitored && !isOk) {
-      this.notifyProblem(droplet);
-    }
-  },
-
-  setToOk: function (droplet) {
-    console.log(droplet.name, 'is OK');
-  },
-
-  notifyProblem: function (droplet) {
-
+    return !shouldNotify;
   }
+
 }
 
 module.exports = DropletsHandler;
