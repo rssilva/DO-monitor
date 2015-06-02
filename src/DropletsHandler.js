@@ -1,7 +1,9 @@
 var DigitalOcean = require('dropletapi').Droplets;
+var request = require('request');
 
 var DropletsHandler = {
   init: function (token) {
+    this.token = token;
     this.monitored = [];
     this.okStatuses = ['active'];
 
@@ -14,10 +16,23 @@ var DropletsHandler = {
    */
   getData: function (cb) {
 
-    this.digitalOcean.listDroplets(function (err, result) {
-      var statuses = this.parseDroplets(result.droplets);
-      cb(statuses);
-    }.bind(this));
+    var options = {
+      url: 'https://api.digitalocean.com/v2/droplets/',
+      headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + this.token
+      }
+    };
+
+    var onResponse = function (error, response, body) {
+      if (!error && response.statusCode == 200) {
+        var data = JSON.parse(body);
+        var statuses = this.parseDroplets(data.droplets);
+        cb(statuses);
+      }
+    }.bind(this);
+
+    request(options, onResponse);
   },
 
   /**
