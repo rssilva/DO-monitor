@@ -7,6 +7,6 @@
   "author": "rssilva",
   "license": "MIT",
   "devDependencies": {
-    "dropletapi": "^3.1.0"
+    "request": "^2.57.0"
   }
 }
