@@ -1,4 +1,3 @@
-var DigitalOcean = require('dropletapi').Droplets;
 var request = require('request');
 
 var DropletsHandler = {
@@ -6,8 +5,6 @@ var DropletsHandler = {
     this.token = token;
     this.monitored = [];
     this.okStatuses = ['active'];
-
-    this.digitalOcean = new DigitalOcean(token);
   },
 
   /**
